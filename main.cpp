@@ -420,7 +420,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 振り子
 	Pendulum pendulum{
-		{0.0f,0.0f,0.0f},
+		{},
 		{0.0f,1.0f,0.0f},
 		0.8f,
 		0.7f,
@@ -429,6 +429,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		0.05f,
 	};
 	float deltaTime = 1.0f / 60.0f;
+
+
+	// start ボタンで開始フラグ
+	bool startFlag = false;
 
 
 	// 画面サイズ
@@ -454,6 +458,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+		
+		// start ボタンで開始
+		if (ImGui::Button("Start"))
+		{
+			startFlag = true;
+		}
 
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -472,10 +482,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
 		pendulum.angle += pendulum.angularVelocity * deltaTime;
 
-		// p は振り子の先端の位置。取り付けたいものを取り付ければいい
-		pendulum.position.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
-		pendulum.position.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
-		pendulum.position.z = pendulum.anchor.z;
+		if (startFlag)
+		{
+			// p は振り子の先端の位置。取り付けたいものを取り付ければいい
+			pendulum.position.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
+			pendulum.position.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
+			pendulum.position.z = pendulum.anchor.z;
+		}
 
 		// 線の座標変換
 		// 始点
@@ -484,7 +497,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 終点
 		Vector3 ndcVertexBallPos = Transform(pendulum.position, worldViewProjectionMatrix);
 		Vector3 screenVerticesBallPos = Transform(ndcVertexBallPos, viewportMatrix);
-
 
 
 		///
@@ -501,12 +513,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawSphere(pendulum, worldViewProjectionMatrix, viewportMatrix);
 		// 線
 		Novice::DrawLine((int)screenVerticesAnchor.x, (int)screenVerticesAnchor.y, (int)screenVerticesBallPos.x, (int)screenVerticesBallPos.y, WHITE);
-
-
-
-		ImGui::Begin("Windou");
-		ImGui::Button("Start");
-		ImGui::End();
 
 		///
 		/// ↑描画処理ここまで
